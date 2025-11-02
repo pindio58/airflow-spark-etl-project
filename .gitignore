@@ -1,4 +1,4 @@
 .env
 logs/*
 config/*
-shared/data*
+shared/data/*
