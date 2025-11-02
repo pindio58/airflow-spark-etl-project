@@ -1,0 +1,33 @@
+FROM apache/airflow:3.1.1
+
+USER root
+
+# -- System dependencies --#
+RUN apt-get update && apt-get install -y\
+    openjdk-17-jdk-headless curl vim git \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# -- Spark dependencies --#
+ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+ENV SPARK_HOME=/opt/spark
+ENV PATH=$SPARK_HOME/bin:$PATH
+ENV PYSPARK_PYTHON=/usr/local/bin/python 
+
+USER airflow
+
+#-- Python Airflow depnedncies -- #
+RUN pip install --no-cache-dir \
+    pyspark==3.5.2 \
+    apache-airflow-providers-apache-spark==5.3.3
+
+USER root
+
+RUN mkdir -p /opt/spark /opt/airflow/dags /opt/airflow/logs /opt/airflow/plugins \
+ && chown -R airflow: /opt/spark /opt/airflow
+
+USER airflow
+WORKDIR /opt/airflow
+
+VOLUME [ "/opt/airflow/dags", "/opt/airflow/logs", "/opt/airflow/plugins" ]
+
+EXPOSE 8080
