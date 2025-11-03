@@ -49,7 +49,7 @@ x-airflow-common:
   # In order to add custom dependencies or upgrade provider distributions you can use your extended image.
   # Comment the image line, place your Dockerfile in the directory where you placed the docker-compose.yaml
   # and uncomment the "build" line below, Then run `docker-compose build` to build the images.
-  image: ${AIRFLOW_IMAGE_NAME:-apache/airflow:3.1.1}
+  image: jeet/airflow-sparklib:latest
   # build: .
   env_file:
     - ${ENV_FILE_PATH:-.env}
@@ -75,11 +75,14 @@ x-airflow-common:
     # The following line can be used to set a custom config file, stored in the local config folder
     AIRFLOW_CONFIG: '/opt/airflow/config/airflow.cfg'
   volumes:
-    - ${AIRFLOW_PROJ_DIR:-.}/dags:/opt/airflow/dags
-    - ${AIRFLOW_PROJ_DIR:-.}/logs:/opt/airflow/logs
-    - ${AIRFLOW_PROJ_DIR:-.}/config:/opt/airflow/config
-    - ${AIRFLOW_PROJ_DIR:-.}/plugins:/opt/airflow/plugins
+    # - ${AIRFLOW_PROJ_DIR:-.}/dags:/opt/airflow/dags
+    # - ${AIRFLOW_PROJ_DIR:-.}/logs:/opt/airflow/logs
+    # - ${AIRFLOW_PROJ_DIR:-.}/config:/opt/airflow/config
+    # - ${AIRFLOW_PROJ_DIR:-.}/plugins:/opt/airflow/plugins
     - pip_cache:/home/airflow/.cache/pip
+    # - ${AIRFLOW_PROJ_DIR:-.}/spark_jobs:/opt/airflow/spark_jobs
+    - ${AIRFLOW_PROJ_DIR:-.}:/opt/airflow
+
   user: "${AIRFLOW_UID:-50000}:0"
   depends_on:
     &airflow-common-depends-on
@@ -333,11 +336,13 @@ services:
 
   # ------------------- SPARK -------------------
   spark-master:
-    image: apache/spark:3.5.2
+    # image: apache/spark:3.5.2
+    image: spark:python3
     container_name: spark-master
     command: >
-      bash -c "/opt/spark/bin/spark-class org.apache.spark.deploy.master.Master
-      --host spark-master"
+      bash -c "
+      /opt/spark/bin/spark-class org.apache.spark.deploy.master.Master --host spark-master
+      "
     ports:
       - "8082:8080"
       - "7077:7077"
@@ -345,9 +350,11 @@ services:
       - SPARK_MODE=master
     networks:
       - data_eng_net
+    volumes:
+      - ./:/app
 
   spark-worker:
-    image: apache/spark:3.5.2
+    image: spark:python3
     container_name: spark-worker
     depends_on:
       - spark-master
@@ -358,6 +365,8 @@ services:
       - "8083:8081"
     environment:
       - SPARK_MODE=worker
+    volumes:
+      - ./spark_jobs:/spark_jobs
     networks:
       - data_eng_net
 
@@ -369,7 +378,9 @@ services:
       - "8888:8888"   # Jupyter Lab
       - "4040:4040"   # Spark UI for local jobs
     volumes:
-      - ./notebooks:/home/jovyan/work
+      # - ./notebooks:/home/jovyan/work/notebooks
+      # - ./spark_jobs:/home/jovyan/work/spark_jobs
+      - ./:/home/jovyan/work
     environment:
       - SPARK_MASTER=spark://spark-master:7077
     depends_on:

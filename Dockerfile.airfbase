@@ -1,0 +1,33 @@
+# --- Base: Apache Airflow (official image) ---
+FROM apache/airflow:latest
+
+USER root
+
+# --- Install Java (needed for Spark) ---
+RUN apt-get update && apt-get install -y \
+    openjdk-17-jdk wget curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# --- Set environment variables ---
+ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+ENV PATH=$JAVA_HOME/bin:$PATH
+
+USER airflow
+
+# --- Install Spark-related Airflow provider and tools ---
+RUN pip install apache-airflow-providers-apache-spark \
+        pyspark
+        # pandas \
+        # pyarrow \
+        # boto3 \
+        # findspark \
+        # requests
+# --- Verify versions ---
+    
+RUN java -version && \
+    python3 --version && \
+    airflow version && \
+    pip show apache-airflow-providers-apache-spark
+
+USER airflow
+WORKDIR /opt/airflow
