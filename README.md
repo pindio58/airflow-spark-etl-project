@@ -1,22 +1,103 @@
-1. Run following command. PLease see [here](https://airflow.apache.org/docs/apache-airflow/stable/howto/docker-compose/index.html) for official documentation.
-- `curl -LfO 'https://airflow.apache.org/docs/apache-airflow/3.1.1/docker-compose.yaml'`
-2. Make the base image using `Dockerfile.base` file
-<br>**Command**: `docker build -t jeet/airflow-spark-base:latest -f Dockerfile.base .
-`</br>
-3. Now, make project-level `Dockerfile` which is  for small updates (no heavy deps).
+# Airflow-Spark ETL Project
 
-**NOTES:**
+A modern data engineering project that demonstrates the integration of Apache Airflow, Apache Spark, and MinIO for building robust ETL (Extract, Transform, Load) pipelines. This project processes retail sales data through multiple transformation stages while following data engineering best practices.
 
-1. Flow is usually `Dockerfile.base` -> `Dockerfile` -> `docker-compose.yml`
-2. According to our needs, we can use/skip `Dockerfile`.
-    - If we need Production like SETUP, we use `Dockerfile` in which we have COPY command. Then we do not mount any volumnes (for codes atleast). So wehataver changes we make, do not get written to PROD like image.
-    - If we need Dev like structure, we can skip `Dockerfile` and use your base image `docker-compose.yml` file in which we have mount. This enables live code updates and local persistence.
-3. Even if we use dev container, we still gonna need mounts to rfelect on local and vice versa.
-4. why we run below manually? 
+## Overview
 
-    `mkdir -p ./dags ./logs ./plugins ./config`<br>
-    `echo -e "AIRFLOW_UID=$(id -u)" > .env`
+This project showcases a complete ETL pipeline that:
+- Processes BigMart sales data through multiple transformation stages
+- Utilizes Apache Airflow for workflow orchestration
+- Leverages Apache Spark for distributed data processing
+- Uses MinIO as a data lake solution
+- Runs entirely in containerized environments using Docker
 
-    On Linux, the quick-start needs to know your host user id and needs to have group id set to 0. Otherwise the files created in dags, logs, config and plugins will be created with root user ownership. You have to make sure to configure them for the docker-compose. Basically, it might create permission issues.
+## Architecture
 
-For this, we will use dev like structure and skip `Dockerfile`
+The project is built using the following components:
+
+- **Apache Airflow**: Orchestrates the ETL workflow
+  - Manages task dependencies
+  - Schedules pipeline execution
+  - Monitors task status
+  - [View Airflow Configuration](./Dockerfile.airfbase)
+
+- **Apache Spark**: Handles data processing
+  - Performs data cleaning
+  - Adds feature engineering
+  - Validates data quality
+  - Computes aggregations
+  - [View Spark Configuration](./Dockerfile.sparkbase)
+
+- **MinIO**: Acts as a data lake
+  - Stores raw input data
+  - Maintains processed data versions
+  - Provides S3-compatible storage
+
+## Data Pipeline
+
+The ETL pipeline consists of several stages:
+
+1. **Data Cleaning**
+   - Handles missing values
+   - Standardizes categorical variables
+   - Removes duplicates
+
+2. **Feature Engineering**
+   - Calculates item age
+   - Creates sales categories
+   - Derives business metrics
+
+3. **Data Validation**
+   - Checks primary key integrity
+   - Validates categorical values
+   - Ensures data quality standards
+
+4. **Aggregation**
+   - Computes outlet-level metrics
+   - Calculates item-type statistics
+   - Generates cumulative sales data
+
+## Project Structure
+
+```
+airflow-spark-etl-project/
+├── config/               # Configuration files
+├── dags/                # Airflow DAG definitions
+├── notebooks/           # Jupyter notebooks for analysis
+├── plugins/             # Airflow plugins
+├── shared/             # Shared utilities and settings
+│   ├── data/           # Data files
+│   └── utils/          # Utility functions
+└── spark_jobs/         # Spark processing scripts
+```
+
+## Getting Started
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/pindio58/airflow-spark-etl-project.git
+   ```
+
+2. Start the services:
+   ```bash
+   docker-compose up -d
+   ```
+
+3. Access the services:
+   - Airflow UI: http://localhost:8080
+   - MinIO Console: http://localhost:9001
+
+## Technology Stack
+
+- [Apache Airflow](https://airflow.apache.org): Workflow orchestration
+- [Apache Spark](https://spark.apache.org): Data processing
+- [MinIO](https://www.min.io): S3-compatible storage
+- [Docker](https://www.docker.com): Containerization
+
+## Contributing
+
+Feel free to submit issues, fork the repository, and create pull requests for any improvements.
+
+## License
+
+This project is open source and available under the [MIT License](LICENSE).

@@ -1,15 +1,14 @@
 import logging
 import requests
 from pathlib import Path
-from datetime import datetime
-# from zoneinfo import ZoneInfo
-
+from datetime import datetime 
 from zoneinfo import ZoneInfo
 
 curr_time = datetime.now(ZoneInfo('Asia/Kolkata')).strftime("%Y%m%d%H%M%S%f")[:-5]
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
+# print(BASE_DIR)
 LOG_DIR = BASE_DIR / "shared" / "logs"
 LOG_FILE = LOG_DIR / f"logs-{curr_time}.log"
 

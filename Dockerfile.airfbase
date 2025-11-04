@@ -16,7 +16,7 @@ USER airflow
 
 # --- Install Spark-related Airflow provider and tools ---
 RUN pip install apache-airflow-providers-apache-spark \
-        pyspark
+        pyspark==3.4.0
         # pandas \
         # pyarrow \
         # boto3 \

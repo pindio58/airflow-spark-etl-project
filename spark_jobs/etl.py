@@ -3,7 +3,8 @@ from pathlib import Path
 
 # append to path to resolve import issues
 BASE_DIR = Path(__file__).resolve().parent.parent
-print(BASE_DIR)
+# print(BASE_DIR)
+
 if str(BASE_DIR) not in sys.path:
     sys.path.append(str(BASE_DIR))
 
@@ -29,6 +30,8 @@ aggregated_folder='aggregated-version'
 # data files
 file_name = "BigMartSales.csv"
 source_file = BASE_DIR / "shared" / "data" / file_name
+# source_file = Path("/app" )/ "shared" / "data" / file_name
+
 
 # get logger
 
@@ -191,5 +194,7 @@ def run_etl():
     write_data(df = df_aggregated, bucket_name=BUCKET_NAME, folder=aggregated_folder)
 
 if __name__ == "__main__":
-    run_etl()
-    spark.stop()
+    try:
+        run_etl()
+    finally:
+        spark.stop()  # Ensure spark session is closed even if an error occurs

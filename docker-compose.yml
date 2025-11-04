@@ -62,8 +62,11 @@ x-airflow-common:
     AIRFLOW__CELERY__BROKER_URL: redis://:@redis:6379/0
     AIRFLOW__CORE__FERNET_KEY: ''
     AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
-    AIRFLOW__CORE__LOAD_EXAMPLES: 'true'
+    AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
     AIRFLOW__CORE__EXECUTION_API_SERVER_URL: 'http://airflow-apiserver:8080/execution/'
+    JAVA_HOME: /usr/lib/jvm/java-17-openjdk-arm64
+    PATH: /usr/lib/jvm/java-17-openjdk-arm64/bin:/home/airflow/.local/bin:/usr/local/bin:/usr/bin
+
     # yamllint disable rule:line-length
     # Use simple http server on scheduler for health checks
     # See https://airflow.apache.org/docs/apache-airflow/stable/administration-and-deployment/logging-monitoring/check-health.html#scheduler-health-check-server
@@ -82,6 +85,7 @@ x-airflow-common:
     - pip_cache:/home/airflow/.cache/pip
     # - ${AIRFLOW_PROJ_DIR:-.}/spark_jobs:/opt/airflow/spark_jobs
     - ${AIRFLOW_PROJ_DIR:-.}:/opt/airflow
+    - spark-jars:/opt/spark/jars
 
   user: "${AIRFLOW_UID:-50000}:0"
   depends_on:
@@ -337,7 +341,7 @@ services:
   # ------------------- SPARK -------------------
   spark-master:
     # image: apache/spark:3.5.2
-    image: spark:python3
+    image: jeet/spark-updpython:latest
     container_name: spark-master
     command: >
       bash -c "
@@ -351,10 +355,11 @@ services:
     networks:
       - data_eng_net
     volumes:
-      - ./:/app
+      - ./:/opt/airflow
+      - spark-jars:/opt/spark/jars
 
   spark-worker:
-    image: spark:python3
+    image: jeet/spark-updpython:latest
     container_name: spark-worker
     depends_on:
       - spark-master
@@ -366,7 +371,8 @@ services:
     environment:
       - SPARK_MODE=worker
     volumes:
-      - ./spark_jobs:/spark_jobs
+      - ./:/opt/airflow
+      - spark-jars:/opt/spark/jars
     networks:
       - data_eng_net
 
@@ -380,7 +386,7 @@ services:
     volumes:
       # - ./notebooks:/home/jovyan/work/notebooks
       # - ./spark_jobs:/home/jovyan/work/spark_jobs
-      - ./:/home/jovyan/work
+      - ./:/opt/airflow
     environment:
       - SPARK_MASTER=spark://spark-master:7077
     depends_on:
@@ -409,6 +415,7 @@ volumes:
   postgres-db-volume:
   minio-data:
   pip_cache:
+  spark-jars:
 
 networks:
   data_eng_net:

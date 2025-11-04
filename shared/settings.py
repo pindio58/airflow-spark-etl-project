@@ -5,16 +5,11 @@ import os
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-print(BASE_DIR)
-env = BASE_DIR / ".env"
-
-
 # print(BASE_DIR)
-# if str(BASE_DIR.parent) not in sys.path:
-#     sys.path.append(BASE_DIR)
+env_file = BASE_DIR / ".env"
 
 env_files = [
-    env
+    env_file
 ]
 
 for env_file in env_files:
