@@ -1,7 +1,7 @@
 # imports
 from typing import Optional
 from airflow.providers.amazon.aws.hooks.s3 import S3Hook
-
+from shared.utils.commonUtils import get_logger
 
 
 def upload_file_to_minio(
@@ -21,7 +21,8 @@ def upload_file_to_minio(
         replace=replace,
     )
 
-def write_df_to_mino(df, path, partition_by=None):
+def write_df_to_mino(df, path,bucket_name, partition_by=None):
+    logger = get_logger(__name__)
     """Write data to MinIO in Parquet format."""
     logger.info(f"Writing data to MinIO: {path}")
     target_path = f"s3a://{bucket_name}/{path}/"
